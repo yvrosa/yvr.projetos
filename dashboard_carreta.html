@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel da Carreta</title>
+<style>
+:root{--bg:#f3f6fb;--panel:#fff;--ink:#172033;--muted:#6b768a;--line:#e5eaf2;--blue:#315efb;--green:#159a72;--red:#e25563;--amber:#e6a23c;--shadow:0 10px 30px rgba(24,39,75,.07)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:linear-gradient(120deg,#152746,#254a82);color:#fff;padding:28px clamp(18px,4vw,48px) 32px}
+.top{max-width:1400px;margin:auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:#b9c9e9;font-weight:800}.title{font-size:clamp(25px,3vw,36px);font-weight:800;letter-spacing:-.04em;margin:5px 0}.subtitle{color:#d2def3;margin:0}
+.status{border:1px solid #52709d;border-radius:999px;padding:9px 13px;font-size:12px;color:#e7efff;display:flex;gap:8px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;background:#4ade80}
+main{max-width:1400px;margin:-14px auto 50px;padding:0 clamp(14px,3vw,36px)}
+.toolbar{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 18px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:20px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:145px}.field label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}select,button{font:inherit;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);padding:10px 12px}button{background:var(--blue);color:white;border-color:var(--blue);font-weight:700;cursor:pointer}button:hover{filter:brightness(.95)}.updated{margin-left:auto;color:var(--muted);font-size:12px;align-self:center}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:19px;box-shadow:var(--shadow);min-width:0}.metric-head{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-weight:650}.icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:17px;background:#edf2ff;color:var(--blue)}.metric{font-size:clamp(21px,2vw,29px);font-weight:800;letter-spacing:-.04em;margin:14px 0 5px;overflow-wrap:anywhere}.hint{font-size:12px;color:var(--muted)}.green{color:var(--green)}.red{color:var(--red)}.amber{color:var(--amber)}
+.section{margin-top:22px}.section-title{font-size:17px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px}.charts{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}.chart-card{padding:20px}.chart-wrap{position:relative;height:270px}.chart-wrap canvas{width:100%;height:100%;display:block}.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}.key{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:16px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line)}th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}td:last-child,th:last-child{text-align:right}.pill{padding:4px 8px;border-radius:99px;font-size:11px;font-weight:750;background:#edf2ff;color:#315efb}.empty{text-align:center;color:var(--muted);padding:24px}.notice{display:none;padding:12px 14px;background:#fff5df;color:#815a13;border:1px solid #f5d99b;border-radius:12px;margin-bottom:16px;font-size:13px}.footer{color:var(--muted);font-size:12px;text-align:center;margin:22px 0}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.lower{grid-template-columns:1fr}}
+@media(max-width:520px){header{padding-top:22px}.grid{gap:10px}.card{padding:14px}.metric{font-size:22px}.toolbar{align-items:stretch}.field{flex:1;min-width:125px}.updated{width:100%;margin-left:0}.chart-wrap{height:230px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div><div class="eyebrow">Gestão operacional • Transporte</div><h1 class="title">Painel da Carreta</h1><p class="subtitle">Visão financeira, custos e acompanhamento da operação.</p></div><div class="status"><span class="dot"></span><span id="connection">Conectando à planilha…</span></div></div></header>
+<main>
+<div class="toolbar">
+ <div class="field"><label for="month">Mês de referência</label><select id="month"><option value="all">Todos os meses</option></select></div>
+ <div class="field"><label for="year">Ano</label><select id="year"><option value="all">Todos os anos</option></select></div>
+ <div class="field"><label for="kind">Movimentação</label><select id="kind"><option value="all">Receitas e despesas</option><option value="receita">Somente receitas</option><option value="despesa">Somente despesas</option></select></div>
+ <button id="refresh">↻ Atualizar dados</button><div class="updated" id="updated">Aguardando dados…</div>
+</div>
+<div class="notice" id="notice"></div>
+<section class="grid">
+ <article class="card"><div class="metric-head">Receitas no período <span class="icon">↗</span></div><div class="metric green" id="revenue">—</div><div class="hint">Entradas identificadas na planilha</div></article>
+ <article class="card"><div class="metric-head">Despesas no período <span class="icon">↘</span></div><div class="metric red" id="expenses">—</div><div class="hint">Saídas identificadas na planilha</div></article>
+ <article class="card"><div class="metric-head">Saldo operacional <span class="icon">＝</span></div><div class="metric" id="balance">—</div><div class="hint">Receitas menos despesas</div></article>
+ <article class="card"><div class="metric-head">Caixa de reserva estimado <span class="icon">◈</span></div><div class="metric" id="reserve">—</div><div class="hint" id="reserveHint">Saldo acumulado calculado pelos registros disponíveis</div></article>
+</section>
+<section class="section"><h2 class="section-title">Evolução financeira</h2><div class="charts">
+ <article class="card chart-card"><div class="metric-head">Receitas × despesas por mês <span class="pill">Tendência</span></div><div class="chart-wrap"><canvas id="trend"></canvas></div><div class="legend"><span><i class="key" style="background:#315efb"></i>Receitas</span><span><i class="key" style="background:#e25563"></i>Despesas</span></div></article>
+ <article class="card chart-card"><div class="metric-head">Composição das despesas</div><div class="chart-wrap"><canvas id="categories"></canvas></div><div class="legend" id="categoryLegend"></div></article>
+</div></section>
+<section class="section"><h2 class="section-title">Acompanhamento da carreta</h2><div class="lower">
+ <article class="card"><div class="metric-head">Indicadores operacionais</div><div class="table-wrap"><table><tbody id="ops"><tr><td colspan="2" class="empty">Aguardando dados da planilha.</td></tr></tbody></table></div></article>
+ <article class="card"><div class="metric-head">Últimas movimentações</div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr></thead><tbody id="transactions"><tr><td colspan="4" class="empty">Aguardando dados…</td></tr></tbody></table></div></article>
+</div></section>
+<div class="footer">Os valores são calculados a partir das colunas encontradas no CSV. Confira os cabeçalhos e a classificação de receitas/despesas.</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRtnKznDnJwVAAsja0C8YOqZ0lqRsxROvocYrMzNELweqWKiTF64hcksow7CgyNrg/pub?output=csv";
+const $ = id => document.getElementById(id);
+const brl = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n||0);
+const monthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let rows=[], headers=[];
+function norm(s){return String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[_-]+/g,' ').replace(/\s+/g,' ')}
+function findKey(row,patterns){const keys=Object.keys(row);return keys.find(k=>patterns.some(p=>norm(k).includes(p)))}
+function parseMoney(v){if(typeof v==='number')return v;let s=String(v??'').trim().replace(/[R$\s]/g,'');if(!s)return 0;
+ if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else if(s.includes(','))s=s.replace(',','.');const n=Number(s.replace(/[^\d.-]/g,''));return Number.isFinite(n)?n:0}
+function parseDate(v){if(!v)return null;let s=String(v).trim(),m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1])}let d=new Date(s);return isNaN(d)?null:d}
+function infer(row){const ks=Object.keys(row);const dateKey=findKey(row,['data','date','dia']);const amountKey=findKey(row,['valor','preco','total','amount','receita','despesa','valor r$']);const typeKey=findKey(row,['tipo','natureza','movimentacao','movimento','classificacao']);const descKey=findKey(row,['descricao','historico','detalhe','nome','categoria','servico','observacao']);const categoryKey=findKey(row,['categoria','grupo','tipo de despesa','centro de custo']);const reserveKey=findKey(row,['reserva','caixa reserva','saldo reserva']);const kmKey=findKey(row,['quilometragem','km rodado','odometro']);const truckKey=findKey(row,['placa','veiculo','carreta','cavalo']);const value=parseMoney(amountKey?row[amountKey]:0);let type=norm(typeKey?row[typeKey]:'');const desc=String(descKey?row[descKey]:'');if(!type&&amountKey){const ak=norm(amountKey);if(ak.includes('receita'))type='receita';else if(ak.includes('despesa'))type='despesa'}
+ const isIncome=/receita|entrada|faturamento|frete recebido|credito|income/.test(type);const isExpense=/despesa|saida|custo|pagamento|debito|expense/.test(type);let date=parseDate(dateKey?row[dateKey]:'');return {raw:row,date,value,type,desc,category:categoryKey?String(row[categoryKey]||'Sem categoria'):'Sem categoria',income:isIncome,expense:isExpense,amountKey,dateKey,typeKey,descKey,categoryKey,reserve:reserveKey?parseMoney(row[reserveKey]):null,km:kmKey?row[kmKey]:null,truck:truckKey?row[truckKey]:null}}
+function classify(r){if(r.income||r.expense)return r;const t=norm(r.type+' '+r.desc);if(/receita|entrada|faturamento|frete recebido|credito/.test(t))r.income=true;else if(/despesa|saida|combustivel|manutencao|pedagio|pneu|seguro|imposto|oficina|pagamento|custo/.test(t))r.expense=true;return r}
+async function load(){ $('connection').textContent='Atualizando…';$('notice').style.display='none';try{
+ let data;
+ if(window.Papa){data=await new Promise((resolve,reject)=>Papa.parse(CSV_URL,{download:true,header:true,skipEmptyLines:'greedy',complete:r=>resolve(r),error:reject}));if(data.errors?.length&& !data.data?.length)throw Error(data.errors[0].message);headers=data.meta.fields||[];rows=data.data.filter(r=>Object.values(r).some(v=>String(v??'').trim())).map(r=>classify(infer(r)))}
+ else {throw Error('A biblioteca PapaParse não foi carregada. Verifique sua conexão com a internet e recarregue a página.')}
+ $('connection').textContent='Planilha conectada';$('updated').textContent='Atualizado em '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});fillFilters();render();
+ }catch(e){$('connection').textContent='Falha na conexão';$('notice').style.display='block';$('notice').textContent='Não foi possível ler o CSV. Verifique se a planilha está publicada na web e se os cabeçalhos estão na primeira linha. Detalhe: '+e.message;$('updated').textContent='Sem atualização';console.error(e)}}
+function fillFilters(){const years=[...new Set(rows.map(r=>r.date&&r.date.getFullYear()).filter(Boolean))].sort((a,b)=>b-a);const y=$('year'),oldY=y.value;y.innerHTML='<option value="all">Todos os anos</option>'+years.map(v=>`<option value="${v}">${v}</option>`).join('');if(years.map(String).includes(oldY))y.value=oldY;
+ const m=$('month'),oldM=m.value;m.innerHTML='<option value="all">Todos os meses</option>'+monthNames.map((v,i)=>`<option value="${i}">${v}</option>`).join('');m.value=oldM||'all'}
+function filtered(){const month=$('month').value,year=$('year').value,kind=$('kind').value;return rows.filter(r=>(month==='all'||(r.date&&r.date.getMonth()===+month))&&(year==='all'||(r.date&&r.date.getFullYear()===+year))&&(kind==='all'||(kind==='receita'?r.income:r.expense)))}
+function render(){const all=filtered();const incomes=all.filter(r=>r.income),expenses=all.filter(r=>r.expense);const rev=incomes.reduce((s,r)=>s+r.value,0),exp=expenses.reduce((s,r)=>s+r.value,0),bal=rev-exp;
+ $('revenue').textContent=brl(rev);$('expenses').textContent=brl(exp);$('balance').textContent=brl(bal);$('balance').className='metric '+(bal>=0?'green':'red');
+ // Reserva: saldo líquido acumulado de todos os lançamentos classificados, salvo se houver coluna de reserva explícita.
+ const explicit=rows.map(r=>r.reserve).filter(v=>v!==null);const reserve=explicit.length?explicit[explicit.length-1]:rows.reduce((s,r)=>s+(r.income?r.value:0)-(r.expense?r.value:0),0);
+ $('reserve').textContent=brl(reserve);$('reserveHint').textContent=explicit.length?'Último saldo encontrado na coluna de reserva':'Estimativa acumulada de receitas menos despesas em todos os registros';
+ drawTrend(all);drawCategories(expenses);drawOps(all);drawTransactions(all)}
+function drawTrend(data){const ctx=$('trend').getContext('2d'),canvas=$('trend');const w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+ const grouped={};data.forEach(r=>{if(!r.date)return;const k=r.date.getFullYear()+'-'+String(r.date.getMonth()+1).padStart(2,'0');grouped[k]??={income:0,expense:0};if(r.income)grouped[k].income+=r.value;if(r.expense)grouped[k].expense+=r.value});
+ let keys=Object.keys(grouped).sort();if(!keys.length){ctx.fillStyle='#8792a6';ctx.textAlign='center';ctx.fillText('Sem dados de data para exibir',w/2,h/2);return}if(keys.length>12)keys=keys.slice(-12);
+ const max=Math.max(1,...keys.flatMap(k=>[grouped[k].income,grouped[k].expense])),pad={l:48,r:12,t:18,b:35},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;ctx.font='10px system-ui';ctx.textAlign='right';for(let i=0;i<=4;i++){let y=pad.t+ch*i/4;ctx.strokeStyle='#e8edf5';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#7c879a';ctx.fillText(shortMoney(max*(1-i/4)),pad.l-7,y+3)}
+ const step=cw/keys.length,bw=Math.min(18,step*.28);keys.forEach((k,i)=>{let x=pad.l+step*(i+.5);let a=grouped[k].income/max*ch,b=grouped[k].expense/max*ch;ctx.fillStyle='#315efb';ctx.fillRect(x-bw-2,pad.t+ch-a,bw,a);ctx.fillStyle='#e25563';ctx.fillRect(x+2,pad.t+ch-b,bw,b);ctx.fillStyle='#69758a';ctx.textAlign='center';ctx.fillText(k.slice(5)+'/'+k.slice(2,4),x,h-12)})}
+function shortMoney(n){return n>=1000000?(n/1000000).toFixed(1)+' mi':n>=1000?(n/1000).toFixed(0)+' mil':n.toFixed(0)}
+function drawCategories(data){const canvas=$('categories'),ctx=canvas.getContext('2d'),w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);const map={};data.forEach(r=>map[r.category]=(map[r.category]||0)+r.value);const entries=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6);const total=entries.reduce((s,e)=>s+e[1],0);const colors=['#315efb','#15a37c','#e6a23c','#e25563','#8b5cf6','#16a6c7'];if(!entries.length||!total){ctx.fillStyle='#8792a6';ctx.textAlign='center';ctx.fillText('Sem despesas categorizadas',w/2,h/2);$('categoryLegend').innerHTML='';return}
+ let start=-Math.PI/2;entries.forEach((e,i)=>{let angle=e[1]/total*Math.PI*2;ctx.beginPath();ctx.moveTo(w*.36,h*.48);ctx.arc(w*.36,h*.48,Math.min(w*.27,h*.39),start,start+angle);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();start+=angle});ctx.fillStyle='#172033';ctx.textAlign='center';ctx.font='700 15px system-ui';ctx.fillText(brl(total),w*.36,h*.48+4);ctx.font='10px system-ui';ctx.fillStyle='#7c879a';ctx.fillText('despesas',w*.36,h*.48+19);
+ $('categoryLegend').innerHTML=entries.map((e,i)=>`<span><i class="key" style="background:${colors[i%colors.length]}"></i>${escapeHtml(e[0])} · ${brl(e[1])}</span>`).join('')}
+function drawOps(data){const km=data.find(r=>r.km!=null&&String(r.km).trim()!=='')?.km;const truck=data.find(r=>r.truck!=null&&String(r.truck).trim()!=='')?.truck;const count=data.length;const income=data.filter(r=>r.income).reduce((s,r)=>s+r.value,0),expense=data.filter(r=>r.expense).reduce((s,r)=>s+r.value,0);const arr=[['Registros no período',count],['Identificação / placa',truck||'Não identificada'],['Quilometragem registrada',km??'Não informada'],['Saldo do período',brl(income-expense)]];$('ops').innerHTML=arr.map(([a,b])=>`<tr><td>${escapeHtml(a)}</td><td style="text-align:right;font-weight:700">${escapeHtml(String(b))}</td></tr>`).join('')}
+function drawTransactions(data){const sorted=data.filter(r=>r.date).sort((a,b)=>b.date-a.date).slice(0,7);$('transactions').innerHTML=sorted.length?sorted.map(r=>`<tr><td>${r.date.toLocaleDateString('pt-BR')}</td><td>${escapeHtml(r.desc||'—')}</td><td><span class="pill" style="${r.expense?'background:#fff0f1;color:#c73c4a':'background:#e7f8f1;color:#117b5c'}">${r.income?'Receita':r.expense?'Despesa':'Outro'}</span></td><td>${brl(r.value)}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhuma movimentação encontrada.</td></tr>'}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('month').addEventListener('change',render);$('year').addEventListener('change',render);$('kind').addEventListener('change',render);$('refresh').addEventListener('click',load);window.addEventListener('resize',()=>{if(rows.length)render()});load();setInterval(load,300000);
+</script>
+</body></html>
